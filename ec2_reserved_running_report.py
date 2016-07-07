@@ -1,3 +1,5 @@
+MY_REGIONS = ['us-east-1', 'eu-west-1']
+
 import boto3
 import json
 
@@ -102,8 +104,6 @@ def compare_reserved_runnin(MY_REGIONS):
                 
     return MY_REPORT
 
-
-MY_REGIONS = ['us-east-1', 'eu-west-1']
 
 #print json.dumps(running_instances(MY_REGIONS))            
 #print json.dumps(active_reserved(MY_REGIONS))
