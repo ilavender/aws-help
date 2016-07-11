@@ -1,7 +1,19 @@
+#!/usr/bin/env python
+
 MY_REGIONS = ['us-east-1', 'eu-west-1']
 
 import boto3
-import json
+import json, argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-i', action='store_true', dest='list_running',
+                    help='list running instances (instance type and availability zone)')
+parser.add_argument('-r', action='store_true', dest='list_reserved',
+                    help='list active reserved (instance type and availability zone)')
+parser.add_argument('-a', action='store_true', dest='list_action',
+                    help='list action of reserved to buy or sell (instance type and availability zone)')
+args = parser.parse_args()
+
 
 ####
 #
@@ -126,33 +138,43 @@ def find_offering(AZ, TYPE):
         #print json.dumps(offering)                
         return {'FixedPrice':offering['FixedPrice'], 'RecurringCharges':offering['RecurringCharges'], 'CurrencyCode':offering['CurrencyCode']}
 
-#print json.dumps(running_instances(MY_REGIONS))            
+
+
+def action_report(MY_REGIONS):
+
+    MY_REPORT = compare_reserved_runnin(MY_REGIONS)
+    WISH_LIST = []
+    WISH_LIST_BUDGET = 0
+    
+    for I_AZ in MY_REPORT:
+        for I_TYPE in MY_REPORT[I_AZ]:
+            if MY_REPORT[I_AZ][I_TYPE] > 0:
+                offering = find_offering(I_AZ, I_TYPE)
+                upfront = (MY_REPORT[I_AZ][I_TYPE] * offering['FixedPrice'])
+                FixedPrice = offering['FixedPrice']
+                WISH_LIST_BUDGET = WISH_LIST_BUDGET + upfront
+                ACTION = 'Buy' 
+            elif MY_REPORT[I_AZ][I_TYPE] < 0:
+                FixedPrice = 0
+                ACTION = 'Sell'
+            elif MY_REPORT[I_AZ][I_TYPE] == 0:
+                FixedPrice = 0
+                ACTION = 'NA'
+                continue
+            
+            WISH_LIST.append({'AvailabilityZone':I_AZ, 'InstanceType':I_TYPE, 'Count':MY_REPORT[I_AZ][I_TYPE], 'FixedPrice':FixedPrice, 'Action':ACTION})
+            
+    return WISH_LIST
+
+if args.list_running:
+    print json.dumps(running_instances(MY_REGIONS))
+elif args.list_reserved:
+    print json.dumps(active_reserved(MY_REGIONS))            
+elif args.list_action:
+    print json.dumps(action_report(MY_REGIONS))
+    #print json.dumps({'ReservedAction':WISH_LIST, 'Budget':WISH_LIST_BUDGET})
+
 #print json.dumps(active_reserved(MY_REGIONS))
 #print json.dumps(compare_reserved_runnin(MY_REGIONS))
 #print json.dumps(find_offering('eu-west-1a', 'm4.xlarge'))
 
-
-MY_REPORT = compare_reserved_runnin(MY_REGIONS)
-WISH_LIST = []
-WISH_LIST_BUDGET = 0
-
-for I_AZ in MY_REPORT:
-    for I_TYPE in MY_REPORT[I_AZ]:
-        if MY_REPORT[I_AZ][I_TYPE] > 0:
-            offering = find_offering(I_AZ, I_TYPE)
-            upfront = (MY_REPORT[I_AZ][I_TYPE] * offering['FixedPrice'])
-            FixedPrice = offering['FixedPrice']
-            WISH_LIST_BUDGET = WISH_LIST_BUDGET + upfront
-            ACTION = 'Buy' 
-        elif MY_REPORT[I_AZ][I_TYPE] < 0:
-            FixedPrice = 0
-            ACTION = 'Sell'
-        elif MY_REPORT[I_AZ][I_TYPE] == 0:
-            FixedPrice = 0
-            ACTION = 'NA'
-            continue
-        
-        WISH_LIST.append({'AvailabilityZone':I_AZ, 'InstanceType':I_TYPE, 'Count':MY_REPORT[I_AZ][I_TYPE], 'FixedPrice':FixedPrice, 'Action':ACTION})
-
-
-print json.dumps({'ReservedAction':WISH_LIST, 'Budget':WISH_LIST_BUDGET})
