@@ -5,10 +5,6 @@ aws-help
 very simple reserved instances monitor.
 return json list:
 
-- ReservedAction (what need to buy/sell) 
-- Budget (buy actions only)
-
-
 # Requirements
 
 pip install boto3
@@ -26,9 +22,11 @@ pip install boto3
 
 # Usage
 
-- generate report for missing or unused reserved instances:
 ```
-	python ec2_reserved_running_report.py | jq .
+  -i          list running instances (instance type and availability zone)
+  -r          list active reserved (instance type and availability zone)
+  -a          list action of reserved to buy or sell (instance type and
+              availability zone)
 ```
 
 
