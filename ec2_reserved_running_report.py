@@ -139,15 +139,19 @@ def compare_reserved_runnin(MY_REGIONS):
     return MY_REPORT
 
 
-def find_offering(AZ, TYPE):
+def find_offering(AZ, TYPE,PLATFORM):
     
     REGION = AZ[:-1]
+    if PLATFORM == 'vpc':
+        I_PLATFORM = 'Linux/UNIX (Amazon VPC)'
+    elif PLATFORM == 'classic':
+        I_PLATFORM = 'Linux/UNIX'
     client = boto3.client('ec2', region_name=REGION)
 
     response = client.describe_reserved_instances_offerings(
         InstanceType=TYPE,
         AvailabilityZone=AZ,
-        ProductDescription='Linux/UNIX (Amazon VPC)',        
+        ProductDescription=I_PLATFORM,    
         InstanceTenancy='default',
         OfferingType='Partial Upfront',
         IncludeMarketplace=False,
@@ -172,7 +176,7 @@ def action_report(MY_REGIONS):
         for I_PLATFORM in MY_REPORT[I_AZ]:
             for I_TYPE in MY_REPORT[I_AZ][I_PLATFORM]:
                 if MY_REPORT[I_AZ][I_PLATFORM][I_TYPE] > 0:
-                    offering = find_offering(I_AZ, I_TYPE)
+                    offering = find_offering(I_AZ, I_TYPE, I_PLATFORM)
                     upfront = (MY_REPORT[I_AZ][I_PLATFORM][I_TYPE] * offering['FixedPrice'])
                     FixedPrice = offering['FixedPrice']
                     WISH_LIST_BUDGET = WISH_LIST_BUDGET + upfront

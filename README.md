@@ -3,7 +3,12 @@ aws-help
 ========
 
 very simple reserved instances monitor.
-return json list:
+return json list
+
+# Note
+
+competible only with Linux classic or vpc.
+product family: 'Linux/UNIX (Amazon VPC)' and 'Linux/UNIX'
 
 # Requirements
 
@@ -12,12 +17,12 @@ pip install boto3
 
 # Configuration
 
-- set your regions by changing MY_REGIONS in ec2_reserved_running_report.py
 - configure boto aws credentials:
 ```
 	https://boto3.readthedocs.io/en/latest/guide/quickstart.html#configuration
 	http://boto3.readthedocs.io/en/latest/guide/configuration.html#shared-credentials-file
 ```
+- set your regions by changing MY_REGIONS in ec2_reserved_running_report.py
 
 
 # Usage
