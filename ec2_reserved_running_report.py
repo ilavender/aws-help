@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+from boto.dynamodb.condition import NULL
 
 MY_REGIONS = ['us-east-1', 'eu-west-1']
 
 import boto3
-import json, argparse
+import json, argparse, re
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-i', action='store_true', dest='list_running',
@@ -39,14 +40,21 @@ def running_instances(MY_REGIONS):
             
             I_AZ = instance.placement['AvailabilityZone']
             I_TYPE = instance.instance_type
+            if instance.vpc_id:
+                I_PLATFORM = 'vpc'
+            else:
+                I_PLATFORM = 'classic'
         
             if MY_RUNNING.has_key(I_AZ) == False:
                 MY_RUNNING[I_AZ] = {}
+                
+            if MY_RUNNING[I_AZ].has_key(I_PLATFORM) == False:
+                MY_RUNNING[I_AZ][I_PLATFORM] = {}
         
-            if MY_RUNNING[I_AZ].has_key(I_TYPE) == False:
-                MY_RUNNING[I_AZ][I_TYPE] = 0
+            if MY_RUNNING[I_AZ][I_PLATFORM].has_key(I_TYPE) == False:
+                MY_RUNNING[I_AZ][I_PLATFORM][I_TYPE] = 0
         
-            MY_RUNNING[I_AZ][I_TYPE] = MY_RUNNING[I_AZ][I_TYPE] + 1
+            MY_RUNNING[I_AZ][I_PLATFORM][I_TYPE] = MY_RUNNING[I_AZ][I_PLATFORM][I_TYPE] + 1
             
     return MY_RUNNING
 
@@ -74,15 +82,24 @@ def active_reserved(MY_REGIONS):
             
             R_AZ = reserve['AvailabilityZone']
             R_TYPE = reserve['InstanceType']
-            R_COUNT = reserve['InstanceCount']            
+            R_COUNT = reserve['InstanceCount']
+            if re.match('.*(Amazon VPC)', reserve['ProductDescription'], re.IGNORECASE):
+                R_PLATFORM = 'vpc'
+            else:
+                R_PLATFORM = 'classic'
             
+            
+                
             if MY_RESERVED.has_key(R_AZ) == False:
                 MY_RESERVED[R_AZ] = {}
         
-            if MY_RESERVED[R_AZ].has_key(R_TYPE) == False:
-                MY_RESERVED[R_AZ][R_TYPE] = 0
+            if MY_RESERVED[R_AZ].has_key(R_PLATFORM) == False:
+                MY_RESERVED[R_AZ][R_PLATFORM] = {}
+                
+            if MY_RESERVED[R_AZ][R_PLATFORM].has_key(R_TYPE) == False:
+                MY_RESERVED[R_AZ][R_PLATFORM][R_TYPE] = 0
         
-            MY_RESERVED[R_AZ][R_TYPE] = MY_RESERVED[R_AZ][R_TYPE] + R_COUNT
+            MY_RESERVED[R_AZ][R_PLATFORM][R_TYPE] = MY_RESERVED[R_AZ][R_PLATFORM][R_TYPE] + R_COUNT
          
     return MY_RESERVED
 
@@ -94,25 +111,30 @@ def compare_reserved_runnin(MY_REGIONS):
     MY_REPORT = {}
     
     for I_AZ in MY_RUNNING:
-        for I_TYPE in MY_RUNNING[I_AZ]:                
-            #print(I_REGION, I_TYPE, I_DIFF)
-            if MY_REPORT.has_key(I_AZ) == False:
-                MY_REPORT[I_AZ] = {}
-    
-            if MY_REPORT[I_AZ].has_key(I_TYPE) == False:
-                MY_REPORT[I_AZ][I_TYPE] = 0
+        for I_PLATFORM in MY_RUNNING[I_AZ]:
+            for I_TYPE in MY_RUNNING[I_AZ][I_PLATFORM]:                
+                #print(I_REGION, I_TYPE, I_DIFF)
+                if MY_REPORT.has_key(I_AZ) == False:
+                    MY_REPORT[I_AZ] = {}
                 
-            if MY_RESERVED[I_AZ].has_key(I_TYPE):
-                I_DIFF = MY_RUNNING[I_AZ][I_TYPE] - MY_RESERVED[I_AZ][I_TYPE]
-            else:
-                I_DIFF = MY_RUNNING[I_AZ][I_TYPE]
+                if MY_REPORT[I_AZ].has_key(I_PLATFORM) == False:
+                    MY_REPORT[I_AZ][I_PLATFORM] = {}
                 
-            MY_REPORT[I_AZ][I_TYPE] = MY_REPORT[I_AZ][I_TYPE] + I_DIFF
+                if MY_REPORT[I_AZ][I_PLATFORM].has_key(I_TYPE) == False:
+                    MY_REPORT[I_AZ][I_PLATFORM][I_TYPE] = 0
+                    
+                if MY_RESERVED[I_AZ].has_key(I_PLATFORM) and MY_RESERVED[I_AZ][I_PLATFORM].has_key(I_TYPE):
+                    I_DIFF = MY_RUNNING[I_AZ][I_PLATFORM][I_TYPE] - MY_RESERVED[I_AZ][I_PLATFORM][I_TYPE]
+                else:
+                    I_DIFF = MY_RUNNING[I_AZ][I_PLATFORM][I_TYPE]
+                    
+                MY_REPORT[I_AZ][I_PLATFORM][I_TYPE] = MY_REPORT[I_AZ][I_PLATFORM][I_TYPE] + I_DIFF
             
     for R_AZ in MY_RESERVED:
-        for R_TYPE in MY_RESERVED[R_AZ]: 
-            if MY_REPORT[R_AZ].has_key(R_TYPE) == False:
-                MY_REPORT[R_AZ][R_TYPE] = 0 - MY_RESERVED[R_AZ][R_TYPE]
+        for R_PLATFORM in MY_RESERVED[R_AZ]:
+            for R_TYPE in MY_RESERVED[R_AZ][R_PLATFORM]: 
+                if MY_REPORT[R_AZ][R_PLATFORM].has_key(R_TYPE) == False:
+                    MY_REPORT[R_AZ][R_PLATFORM][R_TYPE] = 0 - MY_RESERVED[R_AZ][R_PLATFORM][R_TYPE]
                 
     return MY_REPORT
 
@@ -147,22 +169,23 @@ def action_report(MY_REGIONS):
     WISH_LIST_BUDGET = 0
     
     for I_AZ in MY_REPORT:
-        for I_TYPE in MY_REPORT[I_AZ]:
-            if MY_REPORT[I_AZ][I_TYPE] > 0:
-                offering = find_offering(I_AZ, I_TYPE)
-                upfront = (MY_REPORT[I_AZ][I_TYPE] * offering['FixedPrice'])
-                FixedPrice = offering['FixedPrice']
-                WISH_LIST_BUDGET = WISH_LIST_BUDGET + upfront
-                ACTION = 'Buy' 
-            elif MY_REPORT[I_AZ][I_TYPE] < 0:
-                FixedPrice = 0
-                ACTION = 'Sell'
-            elif MY_REPORT[I_AZ][I_TYPE] == 0:
-                FixedPrice = 0
-                ACTION = 'NA'
-                continue
-            
-            WISH_LIST.append({'AvailabilityZone':I_AZ, 'InstanceType':I_TYPE, 'Count':MY_REPORT[I_AZ][I_TYPE], 'FixedPrice':FixedPrice, 'Action':ACTION})
+        for I_PLATFORM in MY_REPORT[I_AZ]:
+            for I_TYPE in MY_REPORT[I_AZ][I_PLATFORM]:
+                if MY_REPORT[I_AZ][I_PLATFORM][I_TYPE] > 0:
+                    offering = find_offering(I_AZ, I_TYPE)
+                    upfront = (MY_REPORT[I_AZ][I_PLATFORM][I_TYPE] * offering['FixedPrice'])
+                    FixedPrice = offering['FixedPrice']
+                    WISH_LIST_BUDGET = WISH_LIST_BUDGET + upfront
+                    ACTION = 'Buy' 
+                elif MY_REPORT[I_AZ][I_PLATFORM][I_TYPE] < 0:
+                    FixedPrice = 0
+                    ACTION = 'Sell'
+                elif MY_REPORT[I_AZ][I_PLATFORM][I_TYPE] == 0:
+                    FixedPrice = 0
+                    ACTION = 'NA'
+                    continue
+                
+                WISH_LIST.append({'AvailabilityZone':I_AZ, 'platform': I_PLATFORM, 'InstanceType':I_TYPE, 'Count':MY_REPORT[I_AZ][I_PLATFORM][I_TYPE], 'FixedPrice':FixedPrice, 'Action':ACTION})
             
     return WISH_LIST
 
