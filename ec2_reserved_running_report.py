@@ -212,7 +212,7 @@ if args.list_running:
     print json.dumps(running_instances(MY_REGIONS))
 elif args.list_reserved:
     print json.dumps(active_reserved(MY_REGIONS))            
-elif args.list_action:
+elif args.list_action and args.list_reserved == False and args.list_running == False:
     print json.dumps(action_report(MY_REGIONS))
     #print json.dumps({'ReservedAction':WISH_LIST, 'Budget':WISH_LIST_BUDGET})
 

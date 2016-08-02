@@ -2,8 +2,7 @@
 aws-help
 ========
 
-very simple reserved instances monitor.
-return json list
+very simple instances & reserved instances list and compare.
 <br>
 <br>
 competible only with Linux classic or vpc.
@@ -31,6 +30,8 @@ pip install boto3
 # Usage
 
 ```
+ec2_reserved_running_report.py <-i -r -a>
+
   -i          list running instances
 
 	  {
