@@ -4,14 +4,13 @@ aws-help
 
 very simple reserved instances monitor.
 return json list
-
-# Note
-
+<br>
+<br>
 competible only with Linux classic or vpc.
 <br>
 product family: 'Linux/UNIX (Amazon VPC)' and 'Linux/UNIX'.
 <br>
-Reserved pricing refer to 'Partial Upfront' for 1 year.
+reserved pricing refer to 'Partial Upfront' for 1 year.
 
 # Requirements
 
