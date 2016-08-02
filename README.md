@@ -30,10 +30,10 @@ pip install boto3
 # Usage
 
 ```
-ec2_reserved_running_report.py <-i -r -a>
+ec2_reserved_running_report.py [-i -r -a]
 
   -i          list running instances
-
+  output:
 	  {
 	    "InstancesId": "i-XXXXXX",
 	    "AvailabilityZone": "eu-west-1a",
@@ -43,7 +43,7 @@ ec2_reserved_running_report.py <-i -r -a>
 	  }
 
   -r          list active reserved
-
+  output:
 	  {
 	    "ReservedInstancesId": "XXXXX-XXXXX-XXXXX",
 	    "AvailabilityZone": "eu-west-1a",
@@ -53,7 +53,7 @@ ec2_reserved_running_report.py <-i -r -a>
 	  }
 
   -a          list action of reserved to buy or sell 
-
+  output:
 	  {
 	    "FixedPrice": 62,
 	    "ProductDescription": "Linux/UNIX",
