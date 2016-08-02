@@ -8,6 +8,7 @@ return json list
 # Note
 
 competible only with Linux classic or vpc.
+
 product family: 'Linux/UNIX (Amazon VPC)' and 'Linux/UNIX'
 
 # Requirements
@@ -28,10 +29,36 @@ pip install boto3
 # Usage
 
 ```
-  -i          list running instances (instance type and availability zone)
-  -r          list active reserved (instance type and availability zone)
-  -a          list action of reserved to buy or sell (instance type and
-              availability zone)
+  -i          list running instances
+
+	  {
+	    "InstancesId": "i-XXXXXX",
+	    "AvailabilityZone": "eu-west-1a",
+	    "InstancesName": "machine.domain.com",
+	    "InstanceType": "m3.large",
+	    "ProductDescription": "Linux/UNIX (Amazon VPC)"
+	  }
+
+  -r          list active reserved
+
+	  {
+	    "ReservedInstancesId": "XXXXX-XXXXX-XXXXX",
+	    "AvailabilityZone": "eu-west-1a",
+	    "InstanceType": "m3.large",
+	    "ProductDescription": "Linux/UNIX (Amazon VPC)",
+	    "InstanceCount": 3
+	  }
+
+  -a          list action of reserved to buy or sell 
+
+	  {
+	    "FixedPrice": 62,
+	    "ProductDescription": "Linux/UNIX",
+	    "AvailabilityZone": "eu-west-1a",
+	    "Action": "Buy",
+	    "InstanceType": "t1.micro",
+	    "InstanceCount": 1
+	  }
 ```
 
 
