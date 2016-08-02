@@ -8,8 +8,10 @@ return json list
 # Note
 
 competible only with Linux classic or vpc.
-
-product family: 'Linux/UNIX (Amazon VPC)' and 'Linux/UNIX'
+<br>
+product family: 'Linux/UNIX (Amazon VPC)' and 'Linux/UNIX'.
+<br>
+Reserved pricing refer to 'Partial Upfront' for 1 year.
 
 # Requirements
 
@@ -19,10 +21,11 @@ pip install boto3
 # Configuration
 
 - configure boto aws credentials:
-```
+
 	https://boto3.readthedocs.io/en/latest/guide/quickstart.html#configuration
+<br>
 	http://boto3.readthedocs.io/en/latest/guide/configuration.html#shared-credentials-file
-```
+
 - set your regions by changing MY_REGIONS in ec2_reserved_running_report.py
 
 
