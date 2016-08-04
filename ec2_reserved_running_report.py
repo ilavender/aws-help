@@ -92,18 +92,20 @@ def active_reserved(MY_REGIONS):
         
         for reserve in response['ReservedInstances']:
             #print(reserve['ReservedInstancesId'], reserve['AvailabilityZone'], reserve['InstanceType'], reserve['InstanceCount'])            
+            '''
+            if re.match('.*(Amazon VPC)', reserve['ProductDescription'], re.IGNORECASE):
+                R_PLATFORM = 'vpc'
+            else:
+                R_PLATFORM = 'classic'
+            '''
+            R_PLATFORM = reserve['ProductDescription']
             
             if args.list_reserved:
                 MY_RESERVED.append({'ReservedInstancesId':reserve['ReservedInstancesId'], 'AvailabilityZone':reserve['AvailabilityZone'], 'InstanceType':reserve['InstanceType'], 'InstanceCount':reserve['InstanceCount'], 'ProductDescription':reserve['ProductDescription']})            
             else:                
                 R_AZ = reserve['AvailabilityZone']
                 R_TYPE = reserve['InstanceType']
-                R_COUNT = reserve['InstanceCount']
-                
-                if re.match('.*(Amazon VPC)', reserve['ProductDescription'], re.IGNORECASE):
-                    R_PLATFORM = 'vpc'
-                else:
-                    R_PLATFORM = 'classic'          
+                R_COUNT = reserve['InstanceCount']                
                     
                 if MY_RESERVED.has_key(R_AZ) == False:
                     MY_RESERVED[R_AZ] = {}
@@ -147,7 +149,10 @@ def compare_reserved_runnin(MY_REGIONS):
             
     for R_AZ in MY_RESERVED:
         for R_PLATFORM in MY_RESERVED[R_AZ]:
-            for R_TYPE in MY_RESERVED[R_AZ][R_PLATFORM]: 
+            for R_TYPE in MY_RESERVED[R_AZ][R_PLATFORM]:
+                if MY_REPORT[R_AZ].has_key(R_PLATFORM) == False:
+                    MY_REPORT[R_AZ][R_PLATFORM] = {}
+                     
                 if MY_REPORT[R_AZ][R_PLATFORM].has_key(R_TYPE) == False:
                     MY_REPORT[R_AZ][R_PLATFORM][R_TYPE] = 0 - MY_RESERVED[R_AZ][R_PLATFORM][R_TYPE]
                 
