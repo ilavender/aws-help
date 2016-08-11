@@ -85,6 +85,7 @@ def active_reserved(MY_REGIONS):
                     'Name': 'state',
                     'Values': [
                         'active',
+                        'payment-pending'
                     ]
                 }
             ]
@@ -92,12 +93,6 @@ def active_reserved(MY_REGIONS):
         
         for reserve in response['ReservedInstances']:
             #print(reserve['ReservedInstancesId'], reserve['AvailabilityZone'], reserve['InstanceType'], reserve['InstanceCount'])            
-            '''
-            if re.match('.*(Amazon VPC)', reserve['ProductDescription'], re.IGNORECASE):
-                R_PLATFORM = 'vpc'
-            else:
-                R_PLATFORM = 'classic'
-            '''
             R_PLATFORM = reserve['ProductDescription']
             
             if args.list_reserved:
@@ -162,10 +157,6 @@ def compare_reserved_runnin(MY_REGIONS):
 def find_offering(AZ, TYPE,I_PLATFORM):
     
     REGION = AZ[:-1]
-    if I_PLATFORM == 'vpc':
-        I_PLATFORM = 'Linux/UNIX (Amazon VPC)'
-    elif I_PLATFORM == 'classic':
-        I_PLATFORM = 'Linux/UNIX'
     client = boto3.client('ec2', region_name=REGION)
 
     response = client.describe_reserved_instances_offerings(

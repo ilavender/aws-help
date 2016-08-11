@@ -30,7 +30,7 @@ pip install boto3
 # Usage
 
 ```
-ec2_reserved_running_report.py [-i -r -a]
+ec2_reserved_running_report.py [-i -r -a] | jq .
 
   -i          list running instances
   output:
@@ -42,7 +42,7 @@ ec2_reserved_running_report.py [-i -r -a]
 	    "ProductDescription": "Linux/UNIX (Amazon VPC)"
 	  }
 
-  -r          list active reserved
+  -r          list reserved instances with status active or payment-pending
   output:
 	  {
 	    "ReservedInstancesId": "XXXXX-XXXXX-XXXXX",
