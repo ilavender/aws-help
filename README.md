@@ -64,6 +64,7 @@ ec2_reserved_running_report.py [-i | -r | -a] [optional: -csv filename] | jq .
 	    "InstanceType": "t1.micro",
 	    "InstanceCount": 1
 	  }
+
   -csv	      file name/path for CSV dump
 ```
 
