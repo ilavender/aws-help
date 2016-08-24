@@ -4,7 +4,7 @@ aws-help
 
 very simple instances & reserved instances list and compare.
 <br>
-monitor uncovered instances by RI and RI waste.
+monitor uncovered instances by RI and RI wasting money.
 <br>
 <br>
 competible only with Linux classic or vpc.
