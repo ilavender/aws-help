@@ -3,7 +3,7 @@
 MY_REGIONS = ['us-east-1', 'eu-west-1']
 
 import boto3
-import json, argparse, re
+import json, argparse, re, csv
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-i', action='store_true', dest='list_running',
@@ -12,6 +12,8 @@ parser.add_argument('-r', action='store_true', dest='list_reserved',
                     help='list active reserved (instance type and availability zone)')
 parser.add_argument('-a', action='store_true', dest='list_action',
                     help='list action of reserved to buy or sell (instance type and availability zone)')
+parser.add_argument('-csv', action='store', dest='csv_file',
+                    help='file name/path for CSV dump')
 args = parser.parse_args()
 
 
@@ -204,11 +206,27 @@ def action_report(MY_REGIONS):
             
     return WISH_LIST
 
+
+def csv_report(data, csvfile):
+    with open(csvfile, "w") as file_handler:
+        csv_file = csv.writer(file_handler)
+        csv_file.writerow(data[0].keys())
+        for item in data:
+            csv_file.writerow(item.values())
+    return
+
+
 if args.list_running:
+    if args.csv_file != None:
+        csv_report(running_instances(MY_REGIONS), args.csv_file)
     print json.dumps(running_instances(MY_REGIONS))
 elif args.list_reserved:
+    if args.csv_file != None:
+        csv_report(active_reserved(MY_REGIONS), args.csv_file)
     print json.dumps(active_reserved(MY_REGIONS))            
 elif args.list_action and args.list_reserved == False and args.list_running == False:
+    if args.csv_file != None:
+        csv_report(action_report(MY_REGIONS), args.csv_file)
     print json.dumps(action_report(MY_REGIONS))
     #print json.dumps({'ReservedAction':WISH_LIST, 'Budget':WISH_LIST_BUDGET})
 
