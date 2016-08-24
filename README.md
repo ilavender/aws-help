@@ -4,6 +4,8 @@ aws-help
 
 very simple instances & reserved instances list and compare.
 <br>
+monitor uncovered instances by RI and RI waste.
+<br>
 <br>
 competible only with Linux classic or vpc.
 <br>
@@ -30,7 +32,7 @@ pip install boto3
 # Usage
 
 ```
-ec2_reserved_running_report.py [-i -r -a] | jq .
+ec2_reserved_running_report.py [-i | -r | -a] [optional: -csv filename] | jq .
 
   -i          list running instances
   output:
@@ -62,6 +64,7 @@ ec2_reserved_running_report.py [-i -r -a] | jq .
 	    "InstanceType": "t1.micro",
 	    "InstanceCount": 1
 	  }
+  -csv	      file name/path for CSV dump
 ```
 
 
