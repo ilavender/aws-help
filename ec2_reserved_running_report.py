@@ -98,7 +98,8 @@ def active_reserved(MY_REGIONS):
             R_PLATFORM = reserve['ProductDescription']
             
             if args.list_reserved:
-                MY_RESERVED.append({'ReservedInstancesId':reserve['ReservedInstancesId'], 'AvailabilityZone':reserve['AvailabilityZone'], 'InstanceType':reserve['InstanceType'], 'InstanceCount':reserve['InstanceCount'], 'ProductDescription':reserve['ProductDescription']})            
+		offering = find_offering(reserve['AvailabilityZone'], reserve['InstanceType'], R_PLATFORM)
+                MY_RESERVED.append({'ReservedInstancesId':reserve['ReservedInstancesId'], 'AvailabilityZone':reserve['AvailabilityZone'], 'InstanceType':reserve['InstanceType'], 'InstanceCount':reserve['InstanceCount'], 'ProductDescription':reserve['ProductDescription'], 'upfront':(offering['FixedPrice'] * reserve['InstanceCount'])})
             else:                
                 R_AZ = reserve['AvailabilityZone']
                 R_TYPE = reserve['InstanceType']
