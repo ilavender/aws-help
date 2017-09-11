@@ -98,7 +98,7 @@ def active_reserved(MY_REGIONS):
             R_PLATFORM = reserve['ProductDescription']
             
             if args.list_reserved:
-		offering = find_offering(reserve['AvailabilityZone'], reserve['InstanceType'], R_PLATFORM)
+                offering = find_offering(reserve['AvailabilityZone'], reserve['InstanceType'], R_PLATFORM)
                 MY_RESERVED.append({'ReservedInstancesId':reserve['ReservedInstancesId'], 'AvailabilityZone':reserve['AvailabilityZone'], 'InstanceType':reserve['InstanceType'], 'InstanceCount':reserve['InstanceCount'], 'ProductDescription':reserve['ProductDescription'], 'upfront':(offering['FixedPrice'] * reserve['InstanceCount'])})
             else:                
                 R_AZ = reserve['AvailabilityZone']
@@ -220,15 +220,15 @@ def csv_report(data, csvfile):
 if args.list_running:
     if args.csv_file != None:
         csv_report(running_instances(MY_REGIONS), args.csv_file)
-    print json.dumps(running_instances(MY_REGIONS))
+    print(json.dumps(running_instances(MY_REGIONS)))
 elif args.list_reserved:
     if args.csv_file != None:
         csv_report(active_reserved(MY_REGIONS), args.csv_file)
-    print json.dumps(active_reserved(MY_REGIONS))            
+    print(json.dumps(active_reserved(MY_REGIONS)))         
 elif args.list_action and args.list_reserved == False and args.list_running == False:
     if args.csv_file != None:
         csv_report(action_report(MY_REGIONS), args.csv_file)
-    print json.dumps(action_report(MY_REGIONS))
+    print(json.dumps(action_report(MY_REGIONS)))
     #print json.dumps({'ReservedAction':WISH_LIST, 'Budget':WISH_LIST_BUDGET})
 
 #print json.dumps(active_reserved(MY_REGIONS))
