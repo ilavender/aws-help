@@ -51,22 +51,28 @@ def running_instances(MY_REGIONS):
                 I_PLATFORM = 'Linux/UNIX'
                 
             if args.list_running:           
-                MY_RUNNING.append({'InstancesName':I_NAME, 'InstancesId':I_ID, 'InstanceType':instance.instance_type, 'AvailabilityZone':instance.placement['AvailabilityZone'], 'ProductDescription':I_PLATFORM})
+                MY_RUNNING.append({
+                    'InstancesName':I_NAME,
+                    'InstancesId':I_ID,
+                    'Region': I_REGION,
+                    'InstanceType':instance.instance_type, 
+                    'AvailabilityZone':instance.placement['AvailabilityZone'], 
+                    'ProductDescription':I_PLATFORM
+                    })
             else:            
-                
-                I_AZ = instance.placement['AvailabilityZone']
+                                
                 I_TYPE = instance.instance_type                
             
-                if MY_RUNNING.has_key(I_AZ) == False:
-                    MY_RUNNING[I_AZ] = {}
+                if MY_RUNNING.has_key(I_REGION) == False:
+                    MY_RUNNING[I_REGION] = {}
                     
-                if MY_RUNNING[I_AZ].has_key(I_PLATFORM) == False:
-                    MY_RUNNING[I_AZ][I_PLATFORM] = {}
+                if MY_RUNNING[I_REGION].has_key(I_PLATFORM) == False:
+                    MY_RUNNING[I_REGION][I_PLATFORM] = {}
             
-                if MY_RUNNING[I_AZ][I_PLATFORM].has_key(I_TYPE) == False:
-                    MY_RUNNING[I_AZ][I_PLATFORM][I_TYPE] = 0
+                if MY_RUNNING[I_REGION][I_PLATFORM].has_key(I_TYPE) == False:
+                    MY_RUNNING[I_REGION][I_PLATFORM][I_TYPE] = 0
             
-                MY_RUNNING[I_AZ][I_PLATFORM][I_TYPE] = MY_RUNNING[I_AZ][I_PLATFORM][I_TYPE] + 1
+                MY_RUNNING[I_REGION][I_PLATFORM][I_TYPE] = MY_RUNNING[I_REGION][I_PLATFORM][I_TYPE] + 1
             
     return MY_RUNNING
 
@@ -98,23 +104,30 @@ def active_reserved(MY_REGIONS):
             R_PLATFORM = reserve['ProductDescription']
             
             if args.list_reserved:
-                offering = find_offering(reserve['AvailabilityZone'], reserve['InstanceType'], R_PLATFORM)
-                MY_RESERVED.append({'ReservedInstancesId':reserve['ReservedInstancesId'], 'AvailabilityZone':reserve['AvailabilityZone'], 'InstanceType':reserve['InstanceType'], 'InstanceCount':reserve['InstanceCount'], 'ProductDescription':reserve['ProductDescription'], 'upfront':(offering['FixedPrice'] * reserve['InstanceCount'])})
+                offering = find_offering(I_REGION, reserve['InstanceType'], R_PLATFORM)
+                MY_RESERVED.append({
+                    'ReservedInstancesId': reserve['ReservedInstancesId'], 
+                    'Region': I_REGION,
+                    'InstanceType': reserve['InstanceType'],
+                    'InstanceCount': reserve['InstanceCount'],
+                    'ProductDescription': reserve['ProductDescription'],
+                    'upfront':(offering['FixedPrice'] * reserve['InstanceCount'])
+                    })
             else:                
-                R_AZ = reserve['AvailabilityZone']
+                #R_AZ = reserve['AvailabilityZone']
                 R_TYPE = reserve['InstanceType']
                 R_COUNT = reserve['InstanceCount']                
                     
-                if MY_RESERVED.has_key(R_AZ) == False:
-                    MY_RESERVED[R_AZ] = {}
+                if MY_RESERVED.has_key(I_REGION) == False:
+                    MY_RESERVED[I_REGION] = {}
             
-                if MY_RESERVED[R_AZ].has_key(R_PLATFORM) == False:
-                    MY_RESERVED[R_AZ][R_PLATFORM] = {}
+                if MY_RESERVED[I_REGION].has_key(R_PLATFORM) == False:
+                    MY_RESERVED[I_REGION][R_PLATFORM] = {}
                     
-                if MY_RESERVED[R_AZ][R_PLATFORM].has_key(R_TYPE) == False:
-                    MY_RESERVED[R_AZ][R_PLATFORM][R_TYPE] = 0
+                if MY_RESERVED[I_REGION][R_PLATFORM].has_key(R_TYPE) == False:
+                    MY_RESERVED[I_REGION][R_PLATFORM][R_TYPE] = 0
             
-                MY_RESERVED[R_AZ][R_PLATFORM][R_TYPE] = MY_RESERVED[R_AZ][R_PLATFORM][R_TYPE] + R_COUNT
+                MY_RESERVED[I_REGION][R_PLATFORM][R_TYPE] = MY_RESERVED[I_REGION][R_PLATFORM][R_TYPE] + R_COUNT
             
     return MY_RESERVED
 
@@ -125,49 +138,49 @@ def compare_reserved_runnin(MY_REGIONS):
     MY_RUNNING=running_instances(MY_REGIONS)    
     MY_REPORT = {}
     
-    for I_AZ in MY_RUNNING:
-        for I_PLATFORM in MY_RUNNING[I_AZ]:
-            for I_TYPE in MY_RUNNING[I_AZ][I_PLATFORM]:                
+    for REGION in MY_RUNNING:
+        for I_PLATFORM in MY_RUNNING[REGION]:
+            for I_TYPE in MY_RUNNING[REGION][I_PLATFORM]:                
                 #print(I_REGION, I_TYPE, I_DIFF)
-                if MY_REPORT.has_key(I_AZ) == False:
-                    MY_REPORT[I_AZ] = {}
+                if MY_REPORT.has_key(REGION) == False:
+                    MY_REPORT[REGION] = {}
                 
-                if MY_REPORT[I_AZ].has_key(I_PLATFORM) == False:
-                    MY_REPORT[I_AZ][I_PLATFORM] = {}
+                if MY_REPORT[REGION].has_key(I_PLATFORM) == False:
+                    MY_REPORT[REGION][I_PLATFORM] = {}
                 
-                if MY_REPORT[I_AZ][I_PLATFORM].has_key(I_TYPE) == False:
-                    MY_REPORT[I_AZ][I_PLATFORM][I_TYPE] = 0
+                if MY_REPORT[REGION][I_PLATFORM].has_key(I_TYPE) == False:
+                    MY_REPORT[REGION][I_PLATFORM][I_TYPE] = 0
                     
-                if MY_RESERVED.has_key(I_AZ) and MY_RESERVED[I_AZ].has_key(I_PLATFORM) and MY_RESERVED[I_AZ][I_PLATFORM].has_key(I_TYPE):
-                    I_DIFF = MY_RUNNING[I_AZ][I_PLATFORM][I_TYPE] - MY_RESERVED[I_AZ][I_PLATFORM][I_TYPE]
+                if MY_RESERVED.has_key(REGION) and MY_RESERVED[REGION].has_key(I_PLATFORM) and MY_RESERVED[REGION][I_PLATFORM].has_key(I_TYPE):
+                    I_DIFF = MY_RUNNING[REGION][I_PLATFORM][I_TYPE] - MY_RESERVED[REGION][I_PLATFORM][I_TYPE]
                 else:
-                    I_DIFF = MY_RUNNING[I_AZ][I_PLATFORM][I_TYPE]
+                    I_DIFF = MY_RUNNING[REGION][I_PLATFORM][I_TYPE]
                     
-                MY_REPORT[I_AZ][I_PLATFORM][I_TYPE] = MY_REPORT[I_AZ][I_PLATFORM][I_TYPE] + I_DIFF
+                MY_REPORT[REGION][I_PLATFORM][I_TYPE] = MY_REPORT[REGION][I_PLATFORM][I_TYPE] + I_DIFF
             
-    for R_AZ in MY_RESERVED:
-        for R_PLATFORM in MY_RESERVED[R_AZ]:
-            for R_TYPE in MY_RESERVED[R_AZ][R_PLATFORM]:
-                if MY_REPORT[R_AZ].has_key(R_PLATFORM) == False:
-                    MY_REPORT[R_AZ][R_PLATFORM] = {}
+    for REGION in MY_RESERVED:
+        for R_PLATFORM in MY_RESERVED[REGION]:
+            for R_TYPE in MY_RESERVED[REGION][R_PLATFORM]:
+                if MY_REPORT[REGION].has_key(R_PLATFORM) == False:
+                    MY_REPORT[REGION][R_PLATFORM] = {}
                      
-                if MY_REPORT[R_AZ][R_PLATFORM].has_key(R_TYPE) == False:
-                    MY_REPORT[R_AZ][R_PLATFORM][R_TYPE] = 0 - MY_RESERVED[R_AZ][R_PLATFORM][R_TYPE]
+                if MY_REPORT[REGION][R_PLATFORM].has_key(R_TYPE) == False:
+                    MY_REPORT[REGION][R_PLATFORM][R_TYPE] = 0 - MY_RESERVED[REGION][R_PLATFORM][R_TYPE]
                 
     return MY_REPORT
 
 
-def find_offering(AZ, TYPE,I_PLATFORM):
+def find_offering(REGION, TYPE,I_PLATFORM):
     
-    REGION = AZ[:-1]
+    #REGION = AZ[:-1]
     client = boto3.client('ec2', region_name=REGION)
 
     response = client.describe_reserved_instances_offerings(
         InstanceType=TYPE,
-        AvailabilityZone=AZ,
         ProductDescription=I_PLATFORM,    
         InstanceTenancy='default',
-        OfferingType='Partial Upfront',
+        OfferingType='All Upfront',
+        OfferingClass='convertible',
         IncludeMarketplace=False,
         MinDuration=31536000,
         MaxDuration=31536000,
@@ -186,24 +199,24 @@ def action_report(MY_REGIONS):
     WISH_LIST = []
     WISH_LIST_BUDGET = 0
     
-    for I_AZ in MY_REPORT:
-        for I_PLATFORM in MY_REPORT[I_AZ]:
-            for I_TYPE in MY_REPORT[I_AZ][I_PLATFORM]:
-                if MY_REPORT[I_AZ][I_PLATFORM][I_TYPE] > 0:
-                    offering = find_offering(I_AZ, I_TYPE, I_PLATFORM)
-                    upfront = (MY_REPORT[I_AZ][I_PLATFORM][I_TYPE] * offering['FixedPrice'])
+    for REGION in MY_REPORT:
+        for I_PLATFORM in MY_REPORT[REGION]:
+            for I_TYPE in MY_REPORT[REGION][I_PLATFORM]:
+                if MY_REPORT[REGION][I_PLATFORM][I_TYPE] > 0:
+                    offering = find_offering(REGION, I_TYPE, I_PLATFORM)
+                    upfront = (MY_REPORT[REGION][I_PLATFORM][I_TYPE] * offering['FixedPrice'])
                     FixedPrice = offering['FixedPrice']
                     WISH_LIST_BUDGET = WISH_LIST_BUDGET + upfront
                     ACTION = 'Buy' 
-                elif MY_REPORT[I_AZ][I_PLATFORM][I_TYPE] < 0:
+                elif MY_REPORT[REGION][I_PLATFORM][I_TYPE] < 0:
                     FixedPrice = 0
                     ACTION = 'Sell'
-                elif MY_REPORT[I_AZ][I_PLATFORM][I_TYPE] == 0:
+                elif MY_REPORT[REGION][I_PLATFORM][I_TYPE] == 0:
                     FixedPrice = 0
                     ACTION = 'NA'
                     continue
                 
-                WISH_LIST.append({'AvailabilityZone':I_AZ, 'ProductDescription': I_PLATFORM, 'InstanceType':I_TYPE, 'InstanceCount':MY_REPORT[I_AZ][I_PLATFORM][I_TYPE], 'FixedPrice':FixedPrice, 'Action':ACTION})
+                WISH_LIST.append({'Region':REGION, 'ProductDescription': I_PLATFORM, 'InstanceType':I_TYPE, 'InstanceCount':MY_REPORT[REGION][I_PLATFORM][I_TYPE], 'FixedPrice':FixedPrice, 'Action':ACTION})
             
     return WISH_LIST
 
